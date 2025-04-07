@@ -7,7 +7,7 @@ using namespace std;
 
 vector<int> goalState = {1, 2, 3, 4, 5, 6, 7, 8, 0};
 
-vector<int> startState = {2, 1, 7, 0, 4, 8, 3, 6, 5};
+vector<int> startState1 = {2, 1, 7, 0, 4, 8, 3, 6, 5};
 
 vector<int> startState2 = {7, 2, 4, 5, 0, 6, 8, 3, 1};
 
@@ -21,12 +21,31 @@ int calculateMisplaced(const vector<int>& state){
     int num = 0;
 
     for(int i=0; i < 9; i++){
-        if(state[i] != goalState[i]){
+        if(state[i] != goalState[i] && state[i] != 0){
             num++;
         }
     }
 
     return num;
+}
+
+//h2 heuristic
+int calculateManhattan(const vector<int>& state){
+    int sum = 0;
+
+    for(int i=0; i < 9; i++){
+        // Hole doesn't count
+        if(state[i] != 0){
+            int startRow = floor(i / 3);
+            int startCol = i % 3;
+            int goalRow = floor((state[i] - 1) / 3);
+            int goalCol = (state[i] - 1) % 3;
+
+            sum += abs(startRow - goalRow) + abs(startCol - goalCol);
+        }
+    }
+
+    return sum;
 }
 
 struct PuzzleState {
@@ -43,7 +62,8 @@ struct PuzzleState {
     // Comparison operator that comapre nodes f=c+h values
     bool operator<(const PuzzleState& compare) const {
         // Priorty queue sort by largest first, flip comparison to get smallest fist
-        return cost + calculateMisplaced(state) > compare.cost + calculateMisplaced(compare.state);
+        return cost + calculateMisplaced(state) > compare.cost + calculateMisplaced(compare.state); // h1
+        //return cost + calculateManhattan(state) > compare.cost + calculateManhattan(compare.state); // h2
     }
 
 };
