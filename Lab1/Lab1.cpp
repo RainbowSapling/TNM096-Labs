@@ -1,0 +1,186 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <set>
+
+using namespace std;
+
+vector<int> goalState = {1, 2, 3, 4, 5, 6, 7, 8, 0};
+
+vector<int> startState = {2, 1, 7, 0, 4, 8, 3, 6, 5};
+
+vector<int> startState2 = {7, 2, 4, 5, 0, 6, 8, 3, 1};
+
+vector<int> startState3 = {5, 8, 4, 0, 7, 1, 3, 6, 2};
+
+vector<int> startState4 = {0, 8, 3, 1, 7, 6, 2, 4, 5};
+
+
+// h1 heuristic, find every tile that doesn't match the goal state
+int calculateMisplaced(const vector<int>& state){
+    int num = 0;
+
+    for(int i=0; i < 9; i++){
+        if(state[i] != goalState[i]){
+            num++;
+        }
+    }
+
+    return num;
+}
+
+struct PuzzleState {
+    vector<int> state;
+    int cost;
+    
+    // Default constructor
+    PuzzleState(){}
+
+    // Constructor
+    PuzzleState(const vector<int>& state, int cost)
+        : state(state), cost(cost) {}
+
+    // Comparison operator that comapre nodes f=c+h values
+    bool operator<(const PuzzleState& compare) const {
+        // Priorty queue sort by largest first, flip comparison to get smallest fist
+        return cost + calculateMisplaced(state) > compare.cost + calculateMisplaced(compare.state);
+    }
+
+};
+
+// Print function 
+void printState(vector<int>& state){
+    for(int i = 0; i < state.size(); i++){
+        cout << state[i];
+    }
+    cout << "\n";
+}
+
+// Finds the position of the zero in a state
+int findZeroPos(vector<int>& state){
+    for(int i=0; i < 9; i++){
+        if(state[i] == 0){
+            return i;
+        }
+    }
+}
+
+// Find all possible moves from the current state
+vector<int> findPossibleMoves(vector<int>& state){
+    vector<int> possibleMoves;
+
+    //Find where the zero is in the state
+    int zeroPos = findZeroPos(state);
+
+    // The position of the zero determines which moves are possible
+    switch(zeroPos)
+    {
+    case 0:
+        possibleMoves = {1,3};
+        break;
+    case 1:
+        possibleMoves = {0,2,4};
+        break;
+    case 2:
+        possibleMoves = {1,5};
+        break;
+    case 3:
+        possibleMoves = {0,4,6};
+        break;
+    case 4:
+        possibleMoves = {1,3,5,7};
+        break;
+    case 5:
+        possibleMoves = {2,4,8};
+        break;
+    case 6:
+        possibleMoves = {3,7};
+        break;
+    case 7:
+        possibleMoves = {4,6,8};
+        break;
+    case 8:
+        possibleMoves = {5,7};
+        break;
+
+    default:
+        break;
+    }
+
+    return possibleMoves;
+}
+
+// Perform a move and return the new state
+vector<int> makeMove(vector<int> state, int move){
+
+    int zeroPos = findZeroPos(state);
+
+    // A move consists of swapping the empty space with a surrounding tile, aka swap 0 with the number at the position of the move
+    swap(state[zeroPos], state[move]);
+
+    return state;
+}
+
+void aStar(vector<int> state){
+
+    // Create a priority queue, since they automatically sort
+    // Priority queue nomaly sorts largest first, but this is reversed from PuzzleStates comparison function, which gives best solutions at the front
+    priority_queue<PuzzleState> openList;
+    
+    // Add start state with cost 0
+    openList.emplace(state, 0);
+
+    set<vector<int>> visitedStates;
+
+    vector<int> possibleMoves;
+
+    PuzzleState currentState;
+
+    PuzzleState tempState;
+
+    while(!openList.empty()){
+        
+        // Select current state and remove from openList
+        currentState = openList.top();
+        openList.pop();
+
+        // When the goal is found -> stop
+        if(currentState.state == goalState){
+            cout << "Yippie!!\n";
+            printState(currentState.state);
+            cout << "Steps required: " << currentState.cost;
+            return;
+        }
+
+        // If state has been visited -> continue
+        if(visitedStates.find(currentState.state) != visitedStates.end()){
+            continue;
+        }
+
+        // Add current state to visited states
+        visitedStates.insert(currentState.state);
+
+        // Find the possible moves from the current state
+        possibleMoves = findPossibleMoves(currentState.state);
+
+        // Create new states from the possible moves, add unique ones to openList
+        for(int i = 0; i < possibleMoves.size(); i++){
+            tempState.state = makeMove(currentState.state, possibleMoves[i]);
+            tempState.cost = currentState.cost + 1;
+            
+            // If tempState hasn't been visited -> add to openList
+            if(visitedStates.find(tempState.state) == visitedStates.end()){
+                openList.push(tempState);
+            }
+        }
+    } 
+
+    // Write out if there aren't any solutions
+    cout << "No solution found :(";
+}
+
+int main() {
+
+    cout << "-------------- start -----------------\n";
+    aStar(startState4);
+}
