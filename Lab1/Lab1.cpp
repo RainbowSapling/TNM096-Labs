@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <set>
+#include <time.h>
 
 using namespace std;
 
@@ -14,6 +15,8 @@ vector<int> startState2 = {7, 2, 4, 5, 0, 6, 8, 3, 1};
 vector<int> startState3 = {5, 8, 4, 0, 7, 1, 3, 6, 2};
 
 vector<int> startState4 = {0, 8, 3, 1, 7, 6, 2, 4, 5};
+
+vector<int> startState5 = {8, 6, 7, 2, 5, 4, 3, 0, 1}; // Most difficult 8-puzzle
 
 
 // h1 heuristic, find every tile that doesn't match the goal state
@@ -48,22 +51,22 @@ int calculateManhattan(const vector<int>& state){
     return sum;
 }
 
-struct PuzzleState {
+struct StateNode {
     vector<int> state;
     int cost;
     
     // Default constructor
-    PuzzleState(){}
+    StateNode(){}
 
     // Constructor
-    PuzzleState(const vector<int>& state, int cost)
+    StateNode(const vector<int>& state, int cost)
         : state(state), cost(cost) {}
 
     // Comparison operator that comapre nodes f=c+h values
-    bool operator<(const PuzzleState& compare) const {
+    bool operator<(const StateNode& compare) const {
         // Priorty queue sort by largest first, flip comparison to get smallest fist
-        return cost + calculateMisplaced(state) > compare.cost + calculateMisplaced(compare.state); // h1
-        //return cost + calculateManhattan(state) > compare.cost + calculateManhattan(compare.state); // h2
+        //return cost + calculateMisplaced(state) > compare.cost + calculateMisplaced(compare.state); // h1
+        return cost + calculateManhattan(state) > compare.cost + calculateManhattan(compare.state); // h2
     }
 
 };
@@ -145,7 +148,7 @@ void aStar(vector<int> state){
 
     // Create a priority queue, since they automatically sort
     // Priority queue nomaly sorts largest first, but this is reversed from PuzzleStates comparison function, which gives best solutions at the front
-    priority_queue<PuzzleState> openList;
+    priority_queue<StateNode> openList;
     
     // Add start state with cost 0
     openList.emplace(state, 0);
@@ -154,9 +157,9 @@ void aStar(vector<int> state){
 
     vector<int> possibleMoves;
 
-    PuzzleState currentState;
+    StateNode currentState;
 
-    PuzzleState tempState;
+    StateNode tempState;
 
     while(!openList.empty()){
         
@@ -166,9 +169,9 @@ void aStar(vector<int> state){
 
         // When the goal is found -> stop
         if(currentState.state == goalState){
-            cout << "Yippie!!\n";
+            cout << "Solution found!!\n";
             printState(currentState.state);
-            cout << "Steps required: " << currentState.cost;
+            cout << "Cost: " << currentState.cost;
             return;
         }
 
@@ -200,7 +203,9 @@ void aStar(vector<int> state){
 }
 
 int main() {
+    clock_t tStart = clock();
 
     cout << "-------------- start -----------------\n";
-    aStar(startState4);
+    aStar(startState5);
+    printf("\nTime taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
 }
