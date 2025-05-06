@@ -1,4 +1,5 @@
 import random
+import copy
 
 # Class for handling clauses
 class Clause:
@@ -12,11 +13,12 @@ class Clause:
 
 
 def resolution(A,B):
+    
     # Check if there is any overlap between (Ap and Bn) and (An and Bp)
-    if not A.p.intersection(B.n) and not A.n.intersection(B.p):
+    if not set(A.p).intersection(B.n) and not set(A.n).intersection(B.p):
         return False
 
-    if A.p.intersection(B.n):
+    if set(A.p).intersection(B.n):
         # Pick random element from the intersection of Ap and Bn
         a = random.choice(list(A.p.intersection(B.n)))
         A.p.remove(a)
@@ -28,7 +30,7 @@ def resolution(A,B):
         B.p.remove(a)
       
     # Create new clause C as union of A and B
-    C = Clause(p = A.p.union(B.p), n = A.n.union(B.n))  
+    C = Clause(p = set(A.p).union(B.p), n = set(A.n).union(B.n))  
     
     # Check if there is overlap between Cp and Cn
     if C.p.intersection(C.n):
@@ -42,10 +44,36 @@ def resolution(A,B):
 
 def solver(KB):
     
+    while True:
+        S = set()
+        tempKB = KB
+        
+        for A in KB:
+            for B in KB:
+                if A == B:
+                    continue
+                
+                C = resolution(A,B)
+                if C:
+                    S = S.union(set({C}))
+         
+        # Check if S is empty       
+        if not S:
+            return KB
+
+        KB = incorporate(S, KB)
+        
+        if tempKB == KB:
+            break
+        
     return KB
   
     
 def incorporate(S, KB):
+    
+    # Incorporate all clauses in S
+    for A in S:
+        KB = incorporate_clause(A, KB)
     
     return KB
 
@@ -55,17 +83,17 @@ def incorporate_clause(A, KB):
     # If we already have a subset of A in KB: do nothing
     for B in KB:
         # Check if B subsumes A
-        if B.p.issubset(A.p) and B.n.issubset(A.n):
+        if set(B.p).issubset(A.p) and set(B.n).issubset(A.n):
             return KB
     
     # If A is a subset of a clause in KB: remove the clause B from KB  
     for B in KB:
         # Check if A subsumes B
-        if A.p.issubset(B.p) and A.n.issubset(B.n):
+        if set(A.p).issubset(B.p) and set(A.n).issubset(B.n):
             KB.remove(B)
         
     # Add A to KB    
-    KB = KB.union(A)
+    KB = KB.union(set({A}))
     
     return KB
             
@@ -91,3 +119,21 @@ A3 = Clause(p={"c","t"}, n={"b"})
 B3 = Clause(p={"z","b"}, n={"c"})
 
 print ("Test 3: ", resolution(A3,B3))
+
+
+# Bob test
+
+A = Clause(p={"ice"}, n={"sun","money"})
+B = Clause(p={"ice","movie"}, n={"money"})
+C = Clause(p={"money"}, n={"movie"})
+D = Clause(p={}, n={"movie","ice"})
+E = Clause(p={"sun","money","cry"}, n={})
+F = Clause(p={"movie"}, n={})
+
+KB = set({A,B,C,D,E,F})
+
+result = solver(KB)
+print ("Test Bob: ")
+
+for i in result:
+    print(i)
