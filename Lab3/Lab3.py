@@ -10,27 +10,36 @@ class Clause:
     # Function for printing results    
     def __str__(self):
         return "p:(" + str(self.p) + ") and n:(" + str(self.n) + ")"
+    
+    def __hash__(self):
+        return hash((frozenset(self.p), frozenset(self.n)))
+    
+    def __eq__(self, other):
+        return self.p == other.p and self.n == other.n
 
 
 def resolution(A,B):
     
+    Ac = copy.deepcopy(A)
+    Bc = copy.deepcopy(B)
+    
     # Check if there is any overlap between (Ap and Bn) and (An and Bp)
-    if not set(A.p).intersection(B.n) and not set(A.n).intersection(B.p):
+    if not set(Ac.p).intersection(Bc.n) and not set(Ac.n).intersection(Bc.p):
         return False
 
-    if set(A.p).intersection(B.n):
+    if set(Ac.p).intersection(Bc.n):
         # Pick random element from the intersection of Ap and Bn
         a = random.choice(list(A.p.intersection(B.n)))
-        A.p.remove(a)
-        B.n.remove(a)
+        Ac.p.remove(a)
+        Bc.n.remove(a)
     else:
         # Pick random element from the intersection of An and Bp
-        a = random.choice(list(A.n.intersection(B.p)))
-        A.n.remove(a)
-        B.p.remove(a)
+        a = random.choice(list(Ac.n.intersection(Bc.p)))
+        Ac.n.remove(a)
+        Bc.p.remove(a)
       
     # Create new clause C as union of A and B
-    C = Clause(p = set(A.p).union(B.p), n = set(A.n).union(B.n))  
+    C = Clause(p = set(Ac.p).union(Bc.p), n = set(Ac.n).union(Bc.n))  
     
     # Check if there is overlap between Cp and Cn
     if C.p.intersection(C.n):
@@ -46,7 +55,7 @@ def solver(KB):
     
     while True:
         S = set()
-        tempKB = KB
+        tempKB = copy.deepcopy(KB)
         
         for A in KB:
             for B in KB:
@@ -54,6 +63,7 @@ def solver(KB):
                     continue
                 
                 C = resolution(A,B)
+                
                 if C:
                     S = S.union(set({C}))
          
@@ -64,15 +74,15 @@ def solver(KB):
         KB = incorporate(S, KB)
         
         if tempKB == KB:
-            break
+            return KB
         
-    return KB
+    
   
     
 def incorporate(S, KB):
     
     # Incorporate all clauses in S
-    for A in S:
+    for A in copy.deepcopy(S):
         KB = incorporate_clause(A, KB)
     
     return KB
@@ -81,13 +91,13 @@ def incorporate(S, KB):
 def incorporate_clause(A, KB):
     
     # If we already have a subset of A in KB: do nothing
-    for B in KB:
+    for B in copy.deepcopy(KB):
         # Check if B subsumes A
         if set(B.p).issubset(A.p) and set(B.n).issubset(A.n):
             return KB
     
     # If A is a subset of a clause in KB: remove the clause B from KB  
-    for B in KB:
+    for B in copy.deepcopy(KB):
         # Check if A subsumes B
         if set(A.p).issubset(B.p) and set(A.n).issubset(B.n):
             KB.remove(B)
@@ -127,10 +137,11 @@ A = Clause(p={"ice"}, n={"sun","money"})
 B = Clause(p={"ice","movie"}, n={"money"})
 C = Clause(p={"money"}, n={"movie"})
 D = Clause(p={}, n={"movie","ice"})
-E = Clause(p={"sun","money","cry"}, n={})
-F = Clause(p={"movie"}, n={})
+E = Clause(p={"movie"}, n={})
+F = Clause(p={"sun","money","cry"}, n={})
 
-KB = set({A,B,C,D,E,F})
+
+KB = set({A,C,D,E,F})
 
 result = solver(KB)
 print ("Test Bob: ")
