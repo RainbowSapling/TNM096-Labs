@@ -11,9 +11,11 @@ class Clause:
     def __str__(self):
         return "p:(" + str(self.p) + ") and n:(" + str(self.n) + ")"
     
+    # Hash function to allow for comparisons
     def __hash__(self):
         return hash((frozenset(self.p), frozenset(self.n)))
     
+    # Comparison function
     def __eq__(self, other):
         return self.p == other.p and self.n == other.n
 
@@ -53,6 +55,8 @@ def resolution(A,B):
 
 def solver(KB):
     
+    KB = incorporate(KB,set())
+    
     while True:
         S = set()
         tempKB = copy.deepcopy(KB)
@@ -71,7 +75,17 @@ def solver(KB):
         if not S:
             return KB
 
+        print("S: ")
+        for A in S:
+            print(A)
+        print("\n")
+        
         KB = incorporate(S, KB)
+        
+        print("KB: ")
+        for A in KB:
+            print(A)
+        print("\n")
         
         if tempKB == KB:
             return KB
@@ -141,7 +155,7 @@ E = Clause(p={"movie"}, n={})
 F = Clause(p={"sun","money","cry"}, n={})
 
 
-KB = set({A,C,D,E,F})
+KB = set({A,B,C,D,E,F})
 
 result = solver(KB)
 print ("Test Bob: ")
