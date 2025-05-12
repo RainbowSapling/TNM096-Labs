@@ -7,14 +7,14 @@ act( go(x,y),                                                      % name
      [in(shakey,x)],                                               % delete
      [in(shakey,y)]                                                % add
      ).
-     
+
 % push
 act( push(b,x,y),                                                                                                    % name
      [in(shakey,x), on(shakey, floor), box(b), in(b,x), diff(x,y), connected(x,y), in(switch,x), switch(switch,on)], % preconditions
      [in(shakey,x), in(b,x)],                                                                                        % delete
      [in(shakey,y), in(b,y)]                                                                                         % add
      ).
-     
+
 % climbUp
 act( climbUp(b),                                         % name
      [box(b), in(shakey,x),on(shakey,floor), in(b,x)],   % preconditions
@@ -42,50 +42,58 @@ act( turnOff(s),                                                    % name
      [switch(s,on)],                                                % delete
      [switch(s,off)]                                                % add
      ).
-     
-     
-goal_state([in(shakey,room1), switch(room1,off), in(box2, room2)]).
 
+% Goal state
+% in(shakey,room1), switch(room1,off), in(box2,room2)
+goal_state([in(shakey,room1)]).
+
+% Initial state
 initial_state(
      [      % Shakey
             in(shakey, room3),
             on(shakey, floor),
-            
+
             % Rooms
             room(room1),
             room(room2),
             room(room3),
             room(room4),
-            room(corridor),
-            
+
             % Room connections
-            connected(room1, corridor),
-            connected(room2, corridor),
-            connected(room3, corridor),
-            connected(room4, corridor),
-            connected(corridor, room1),
-            connected(corridor, room2),
-            connected(corridor, room3),
-            connected(corridor, room4),
-            
+            connected(room1, room2),
+            connected(room1, room3),
+            connected(room1, room4),
+
+            connected(room2, room1),
+            connected(room2, room3),
+            connected(room2, room4),
+
+            connected(room3, room1),
+            connected(room3, room2),
+            connected(room3, room4),
+
+            connected(room4, room1),
+            connected(room4, room2),
+            connected(room4, room3),
+
             % Light switches
             switch(switch1, on),
             switch(switch2, off),
             switch(switch3, off),
             switch(switch4, on),
-            
+
             % Light switch locations
             in(switch1, room1),
             in(switch2, room2),
             in(switch3, room3),
             in(switch4, room4),
-            
+
             % Boxes
             box(box1),
             box(box2),
             box(box3),
             box(box4),
-            
+
             % Box locations
             in(box1, room1),
             in(box2, room1),
